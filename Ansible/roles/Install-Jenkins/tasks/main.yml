@@ -1,0 +1,86 @@
+# tasks file for Install-Jenkins
+
+# Install Jenkins On Ubuntu
+
+- name: Add Jenkins repository key
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+    mode: '0644'
+  register: my_result    
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Add Jenkins repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+    filename: jenkins
+  register: my_result
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+
+- name: Update cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu" and  my_result.changed == true
+
+
+- name: install Java
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - fontconfig
+    - openjdk-17-jre
+  when: ansible_facts['distribution'] == "Ubuntu"
+  notify: Install-Jenkins
+
+
+- name: Start and enable Jenkins service
+  ansible.builtin.service:
+    name: jenkins
+    state: started
+    enabled: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+#--------------------------------------------------------------------------------------------------------
+ 
+
+# Install Jenkins On RedHat
+
+- name: Add Jenkins repository
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+    mode: '0644'
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+- name: Import Jenkins GPG key
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+  register: my_result
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+
+- name: Update package cache on RedHat
+  dnf:
+    update_cache: yes
+  become: yes
+  when: ansible_facts['os_family'] == "RedHat" and  my_result.changed == true
+
+
+- name: install Java
+  dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - fontconfig
+    - java-17-openjdk
+    - jenkins
+  when: ansible_facts['os_family'] == "RedHat"
+  notify: Reload systemd, start and enable Jenkins
+

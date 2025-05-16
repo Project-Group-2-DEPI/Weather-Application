@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-auth
+  labels:
+    app: weather-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-auth
+  template:
+    metadata:
+      labels:
+        app: weather-auth
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: mysql:latest
+          command: ['sh', '-c',
+            'until mysql -h${DB_HOST} -u${DB_USER} -p${DB_PASSWORD} -e "SELECT 1"; do echo "Waiting for MySQL"; sleep 2; done;']
+          env:
+          - name: DB_HOST
+            value: mysql-headless-service
+          - name: DB_USER
+            value: client
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: user-password
+
+      containers:
+        - name: weatherauth-container
+          image: aliahmed312/weatherapp-auth:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+          - containerPort: 8000
+
+          env: 
+          - name: DB_HOST
+            value: mysql-headless-service
+
+          - name: DB_USER
+            value: client
+
+          - name: DB_NAME
+            value: weatherapp
+
+          - name: DB_PORT
+            value: "3306"          
+
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: user-password
+
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: secret-key
+

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-ui
+  labels:
+    app: weather-ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: weather-ui
+  template:
+    metadata:
+      labels:
+        app: weather-ui
+    spec:
+      containers:
+        - name: weatherui-container
+          image: aliahmed312/weatherapp-ui:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+
+          env:
+          - name: AUTH_HOST
+            value: weather-auth-service
+
+          - name: AUTH_PORT
+            value: "8000"
+
+          - name: WEATHER_HOST
+            value: weather-weather-service
+
+          - name: WEATHER_PORT
+            value: "5000"
+

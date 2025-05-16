@@ -1,0 +1,18 @@
+# handlers file for Install-Jenkins
+
+- name: Install-Jenkins
+  ansible.builtin.apt:
+    name: jenkins
+    state: present
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+#-----------------------------------------------------------------
+ 
+- name: Reload systemd, start and enable Jenkins
+  ansible.builtin.systemd:
+    name: jenkins
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  when: ansible_facts['os_family'] == "RedHat"
+

@@ -1,0 +1,16 @@
+- name: install-docker-jenkins
+  hosts: docker_jenkins
+  gather_facts: true
+  roles:
+    - role: Install-Docker 
+      tags: docker
+
+    - role: Install-Jenkins
+      tags: jenkins
+
+- name: Deploy weather app stack
+  hosts: remote_servers  
+  gather_facts: true
+  roles:
+    - role: run-weatherapp 
+      tags: weather

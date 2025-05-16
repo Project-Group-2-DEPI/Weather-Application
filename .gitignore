@@ -1,0 +1,10 @@
+.env
+database
+weather-secret.yaml
+mysql-secret.yaml
+mysql-config.yaml
+terraform.tfvars
+terraform.tfstate 
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl

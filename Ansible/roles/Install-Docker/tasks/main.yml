@@ -1,0 +1,107 @@
+# tasks file for Install-Docker
+
+# Install Docker On Ubuntu
+
+- name: Update cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+
+- name: Install dependencies
+  ansible.builtin.apt:
+    name: "{{ item }}" 
+    state: present
+  loop:
+     - ca-certificates
+     - curl
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Create directory for keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Add Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_facts['lsb']['codename'] }} stable"
+    state: present
+    filename: docker
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Update cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+
+- name: Install docker on Ubuntu
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+     - docker-ce
+     - docker-ce-cli
+     - containerd.io
+     - docker-buildx-plugin
+     - docker-compose-plugin
+  become: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+
+# ------------------------------------------------------------------------------
+
+# Install Docker On RedHat
+
+
+- name: Install dnf-plugins-core
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+  become: yes
+  when: ansible_facts['os_family'] == "RedHat"
+  
+
+- name: Add Docker repository
+  ansible.builtin.command:
+    cmd: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+  become: yes
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+- name: Install docker on Redhat
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+     - docker-ce
+     - docker-ce-cli
+     - containerd.io
+     - docker-buildx-plugin
+     - docker-compose-plugin
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Enable and start Docker service on RedHat
+  ansible.builtin.systemd:
+    name: docker
+    enabled: yes
+    state: started
+  become: yes
+  when: ansible_facts['os_family'] == "RedHat"

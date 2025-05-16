@@ -1,0 +1,71 @@
+- name: Create Docker network
+  community.docker.docker_network:
+    name: mynetwork
+    driver: bridge
+
+- name: Ensure ./database directory exists
+  ansible.builtin.file:
+    path: ./database
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Run MySQL container
+  community.docker.docker_container:
+    name: weather-db
+    hostname: db
+    image: "{{ images.db }}"
+    restart_policy: always
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ MYSQL_ROOT_PASSWORD }}"
+      MYSQL_DATABASE: "{{ MYSQL_DATABASE }}"
+    volumes:
+      - ./database:/var/lib/mysql
+    networks:
+      - name: mynetwork
+
+
+- name: Run auth container
+  community.docker.docker_container:
+    name: weather-auth
+    hostname: auth
+    image: "{{ images.auth }}"
+    restart_policy: always
+    env:
+      DB_HOST: db
+      DB_USER: "{{ DB_USER }}"
+      DB_PASSWORD: "{{ DB_PASSWORD }}"
+      DB_NAME: "{{ DB_NAME }}"
+    networks:
+      - name: mynetwork
+
+
+- name: Run weather container
+  community.docker.docker_container:
+    name: weather-weather
+    hostname: weather
+    image: "{{ images.weather }}"
+    restart_policy: always
+    env:
+      APIKEY: "{{ APIKEY }}"
+    ports:
+      - "5000:5000"
+    networks:
+      - name: mynetwork
+
+- name: Run UI container
+  community.docker.docker_container:
+    name: weather-ui
+    hostname: ui
+    image: "{{ images.ui }}"
+    restart_policy: always
+    env:
+      AUTH_HOST: auth
+      AUTH_PORT: "8000"
+      WEATHER_HOST: weather
+      WEATHER_PORT: "5000"
+    ports:
+      - "3000:3000"
+    networks:
+      - name: mynetwork
+

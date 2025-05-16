@@ -1,0 +1,12 @@
+DB_USER: root
+DB_PASSWORD: DB_Password
+DB_NAME: authdb
+MYSQL_ROOT_PASSWORD: DB_Password
+MYSQL_DATABASE: authdb
+APIKEY: 0a72bb5214msh39460a9ea06db36p13f8aejsnaef3b29d6178
+
+images: 
+   auth: aliahmed312/weatherapp-auth:latest
+   ui: aliahmed312/weatherapp-ui:latest
+   weather: aliahmed312/weatherapp-weather:latest
+   db: mysql
