@@ -18,6 +18,8 @@ This app allows users to search for the weather of any city and displays informa
 - **Containerization:** Docker, Docker-Compose  
 
 ---
+## Project Structure
+![Project Structure](diagram.png) 
 
 ## 📷 Application Screenshot
 
